@@ -1,5 +1,13 @@
 {
-  "plugins": [
-    "@react-native-community/datetimepicker"
-  ]
+  "expo": {
+    "name": "Card Brain",
+    "slug": "card-brain-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "scheme": "cardbrain",
+    "plugins": [
+      "@react-native-community/datetimepicker"
+    ]
+  }
 }
