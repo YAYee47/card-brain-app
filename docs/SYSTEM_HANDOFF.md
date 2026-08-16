@@ -48,6 +48,7 @@
 ## 3. 資料庫與模型 (Data Models)
 
 - **User**: 使用者帳號模型。
+  - 近期新增欄位：`password_hash` (使用原生 `bcrypt` 進行加密)，解決了舊版無密碼直接登入的資安漏洞。
 - **Card**: 系統內建的信用卡圖鑑。
   - 近期新增欄位：`benefit_url` (官方權益網址)、`last_synced_at` (最後爬蟲更新時間)。
 - **UserCard**: 使用者名下的信用卡（關聯 User 與 Card），包含個人結帳日 `billing_cycle_date`。
@@ -106,6 +107,8 @@
 - [x] **儀表板排版與按鈕優化**: 移除儀表板中干擾排版的總卡片數，對齊文字；更新清空按鈕樣式。
 - [x] **資料庫架構大改版 (額度分離)**: 將 `MonthlyUsage` 綁定 `card_benefit_id`，徹底解決了一般消費與特定加碼（如吉鶴卡日系名店）會互相佔用額度的嚴重 Bug，實現每條權益獨立計算額度。
 - [x] **修復 iOS 日曆當機**: 修復了 iOS 點擊日期選擇器 (`DateTimePicker`) 因傳遞非法 `textColor` 導致觸發 `PushNotificationIOS` 報錯的嚴重系統閃退問題。
+- [x] **帳號資安與密碼機制**: 為非訪客帳號新增 `password_hash` 機制，確保暱稱不被冒用。
+- [x] **移除 passlib 相容性問題**: 發現 `passlib` 與 `bcrypt` 5.x 存在相容性問題會導致 500 錯誤，已全面改用原生 `bcrypt` 套件處理密碼雜湊。
 
 ---
 
