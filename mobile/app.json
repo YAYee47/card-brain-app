@@ -6,6 +6,7 @@
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "scheme": "cardbrain",
+    "icon": "./assets/icon.png",
     "plugins": [
       "@react-native-community/datetimepicker"
     ],
@@ -21,6 +22,8 @@
       "url": "https://u.expo.dev/0875fabb-318b-4a4a-a829-fc9ab805ae50"
     },
     "android": {},
-    "ios": {}
+    "ios": {
+      "bundleIdentifier": "com.anonymous.card-brain-app"
+    }
   }
 }
