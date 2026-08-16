@@ -1,10 +1,11 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
 
 class UserAuthRequest(BaseModel):
     device_uuid: str
     nickname: str
+    password: Optional[str] = Field(None, min_length=4, max_length=20, description="密碼 (4~20 碼)")
     is_guest: bool = False
 
 class UserOut(BaseModel):

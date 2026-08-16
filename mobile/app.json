@@ -8,6 +8,19 @@
     "scheme": "cardbrain",
     "plugins": [
       "@react-native-community/datetimepicker"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "0875fabb-318b-4a4a-a829-fc9ab805ae50"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/0875fabb-318b-4a4a-a829-fc9ab805ae50"
+    },
+    "android": {},
+    "ios": {}
   }
 }

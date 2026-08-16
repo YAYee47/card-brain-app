@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, SafeAreaView, ActivityIndicator, ScrollView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
@@ -6,9 +6,11 @@ import { apiClient } from '../src/api/client';
 
 export default function WelcomeScreen() {
   const [nickname, setNickname] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [existingUsers, setExistingUsers] = useState<any[]>([]);
   const router = useRouter();
+  const passwordInputRef = useRef<TextInput>(null);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -31,28 +33,35 @@ export default function WelcomeScreen() {
     });
   };
 
-  const handleLogin = async (isGuest: boolean, existingUser?: any) => {
-    if (!isGuest && !existingUser && !nickname.trim()) {
-      Alert.alert('提示', '請輸入您的專屬暱稱！');
-      return;
+  const handleSelectExisting = (user: any) => {
+    setNickname(user.nickname);
+    setPassword('');
+    Alert.alert('請輸入密碼', `請在下方輸入 ${user.nickname} 的密碼以登入`);
+    passwordInputRef.current?.focus();
+  };
+
+  const handleLogin = async (isGuest: boolean) => {
+    if (!isGuest) {
+      if (!nickname.trim()) {
+        Alert.alert('提示', '請輸入您的專屬暱稱！');
+        return;
+      }
+      if (!password.trim() || password.length < 4 || password.length > 20) {
+        Alert.alert('提示', '請設定或輸入密碼 (4~20碼)！');
+        return;
+      }
     }
 
     setLoading(true);
     try {
-      let uuid = '';
-      let name = '';
-
-      if (existingUser) {
-        uuid = existingUser.device_uuid;
-        name = existingUser.nickname;
-      } else {
-        uuid = isGuest ? `guest-${generateUUID()}` : generateUUID();
-        name = isGuest ? `訪客 ${uuid.substring(0, 5)}` : nickname.trim();
-      }
+      // 如果是訪客，產生全新的 guest UUID。如果是註冊/登入，產生新的 UUID 用來綁定設備
+      const uuid = isGuest ? `guest-${generateUUID()}` : generateUUID();
+      const name = isGuest ? `訪客 ${uuid.substring(0, 5)}` : nickname.trim();
 
       const response = await apiClient.post('/users/auth', {
         device_uuid: uuid,
         nickname: name,
+        password: isGuest ? null : password,
         is_guest: isGuest
       });
 
@@ -66,7 +75,11 @@ export default function WelcomeScreen() {
       router.replace('/');
     } catch (error: any) {
       console.error(error);
-      Alert.alert('錯誤', '無法連線至伺服器，請確認電腦後端已啟動。');
+      if (error.response && error.response.status === 401) {
+        Alert.alert('登入失敗', error.response.data.detail || '密碼錯誤');
+      } else {
+        Alert.alert('錯誤', '無法連線至伺服器，請確認網路或後端狀態。');
+      }
     } finally {
       setLoading(false);
     }
@@ -80,27 +93,36 @@ export default function WelcomeScreen() {
 
         {existingUsers.length > 0 && (
           <View style={styles.card}>
-            <Text style={styles.label}>已儲存身分</Text>
+            <Text style={styles.label}>已存在的帳號</Text>
             {existingUsers.map(user => (
               <TouchableOpacity 
                 key={user.id}
                 style={[styles.btn, styles.existingBtn]} 
-                onPress={() => handleLogin(false, user)}
+                onPress={() => handleSelectExisting(user)}
                 disabled={loading}
               >
-                <Text style={styles.existingBtnText}>繼續使用 {user.nickname}</Text>
+                <Text style={styles.existingBtnText}>登入 {user.nickname}</Text>
               </TouchableOpacity>
             ))}
           </View>
         )}
 
         <View style={styles.card}>
-          <Text style={styles.label}>建立一個新的身分</Text>
+          <Text style={styles.label}>登入或建立新帳號</Text>
           <TextInput
             style={styles.input}
-            placeholder="請輸入您的暱稱 (例如: YAYee)"
+            placeholder="請輸入暱稱 (例如: YAYee)"
             value={nickname}
             onChangeText={setNickname}
+            placeholderTextColor="#FBCFE8"
+          />
+          <TextInput
+            ref={passwordInputRef}
+            style={styles.input}
+            placeholder="請輸入密碼 (4~20碼)"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
             placeholderTextColor="#FBCFE8"
           />
           <TouchableOpacity 
@@ -137,7 +159,7 @@ export default function WelcomeScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFF0F5' },
-  content: { flex: 1, justifyContent: 'center', padding: 24 },
+  content: { flexGrow: 1, justifyContent: 'center', padding: 24 },
   title: { fontSize: 28, fontWeight: '800', color: '#831843', textAlign: 'center', marginBottom: 8 },
   subtitle: { fontSize: 16, color: '#BE185D', textAlign: 'center', marginBottom: 40 },
   card: { backgroundColor: '#FFFFFF', padding: 24, borderRadius: 20, shadowColor: '#FDA4AF', shadowOpacity: 0.3, shadowRadius: 10, elevation: 5, marginBottom: 20 },
