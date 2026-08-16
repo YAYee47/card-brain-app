@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional
-from sqlalchemy import Integer, String, Numeric, DateTime, ForeignKey, func
+from sqlalchemy import Integer, String, Numeric, DateTime, ForeignKey, func, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.database import Base
 
@@ -15,11 +15,11 @@ class Transaction(Base):
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False, default=1)
     user_card_id: Mapped[int] = mapped_column(Integer, ForeignKey("user_cards.id"), nullable=False)
     # 支付通道 (如：Apple Pay, LINE Pay, 實體刷卡, 網路消費)
-    channel_name: Mapped[str] = mapped_column(String(50), nullable=False)
+    channel_name: Mapped[str] = mapped_column(Text, nullable=False)
     # 消費分類 (如：餐飲, 購物, 交通, 數位網購, 娛樂, 固定支出)
-    category: Mapped[str] = mapped_column(String(30), nullable=True, default="其他")
+    category: Mapped[str] = mapped_column(String(50), nullable=True, default="其他")
     # 商家名稱 (由 AI 辨識或使用者手動輸入)
-    merchant_name: Mapped[str] = mapped_column(String(100), nullable=True)
+    merchant_name: Mapped[str] = mapped_column(Text, nullable=True)
     # 原始消費金額 (外幣時記錄原始幣值)
     original_amount: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False)
     # 幣別 (如 TWD, JPY, USD)

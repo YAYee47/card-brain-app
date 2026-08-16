@@ -4,7 +4,7 @@ from app.core.config import settings
 
 # 建立非同步 SQLAlchemy 引擎
 engine = create_async_engine(
-    settings.DATABASE_URL,
+    settings.async_database_url,
     echo=False,      # 生產環境請設為 False
     future=True,
 )
