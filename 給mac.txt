@@ -1,6 +1,0 @@
-「你好！我剛把在 Windows 上開發好的 Card Brain 專案移轉到這台 Mac 上。我會換到 Mac 開發的最主要目的，是為了『把這個 App 安裝到我的 iPhone 上』，並實際帶在身上使用。
-
-請你先閱讀 docs/PROJECT_SUMMARY.md 以及 docs/MAC_HANDOVER_README.md 了解目前架構與這幾天完成的核心功能。讀完後，請進行以下任務：
-
-一步步教我如何開啟 iPhone 的開發者模式，並指導我如何把這個 React Native (Expo) 專案編譯或載入到我的手機上。
-協助我評估與規劃，將後端 FastAPI 部署到 Render/Zeabur 等雲端環境，讓我的手機在外也能順利連線，不再受限於 localhost！」

@@ -5,4 +5,6 @@ from app.models.monthly_usage import MonthlyUsage
 from app.models.transactions import Transaction
 from app.models.users import User
 
-__all__ = ["Card", "UserCard", "CardBenefit", "MonthlyUsage", "Transaction", "User"]
+from app.models.alerts import AppAlert
+
+__all__ = ["Card", "UserCard", "CardBenefit", "MonthlyUsage", "Transaction", "User", "AppAlert"]

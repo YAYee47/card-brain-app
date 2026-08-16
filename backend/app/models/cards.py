@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 from sqlalchemy import Integer, String, DateTime, Text, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.database import Base
 
 class Card(Base):
@@ -19,3 +19,5 @@ class Card(Base):
     benefit_url: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     last_synced_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+    benefits = relationship("CardBenefit", back_populates="card", cascade="all, delete-orphan")

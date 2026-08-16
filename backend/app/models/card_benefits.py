@@ -27,4 +27,4 @@ class CardBenefit(Base):
     effective_date: Mapped[date] = mapped_column(Date, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
-    card = relationship("Card", backref="benefits")
+    card = relationship("Card", back_populates="benefits")
