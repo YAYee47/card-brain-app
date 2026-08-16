@@ -18,8 +18,8 @@
 
 ```mermaid
 graph TD
-    A["React Native / Expo 前端 App"] -->|HTTP / REST API| B["FastAPI 後端伺服器"]
-    B -->|非同步 ORM| C[("SQLite 資料庫 card_brain.db")]
+    A["React Native / Expo 前端 App (iOS/Android/Web)"] -->|HTTPS / REST API| B["Render.com 雲端後端伺服器 (FastAPI)"]
+    B -->|非同步 AsyncPG ORM| C[("Neon.tech 雲端 PostgreSQL 資料庫")]
     B -->|Vision OCR| D["Google Gemini 2.5 Flash API"]
     B -->|即時匯率抓取| E["Exchange Rate API"]
     B -->|排程觸發 (月/日)| F["APScheduler 定時器"]
@@ -29,8 +29,8 @@ graph TD
 | 層級 | 技術選型 | 說明 |
 |:---|:---|:---|
 | **前端 (Mobile)** | React Native, Expo, TypeScript, AsyncStorage | 跨平台 iOS/Android/Web，支援離線快取 |
-| **後端 (Backend)** | Python 3, FastAPI, SQLAlchemy 2.0 (Async) | 高效能非同步 API 服務 |
-| **資料庫 (Database)**| SQLite (`card_brain.db`) | 輕量化非同步儲存，具備完整關聯模型 |
+| **後端 (Backend)** | Python 3, FastAPI, SQLAlchemy 2.0 (Async) | 部署於 Render.com 雲端平台 |
+| **資料庫 (Database)**| PostgreSQL (`Neon.tech`) | 永久免費 Serverless 關聯資料庫 |
 | **AI 視覺辨識** | Google `gemini-2.5-flash` (google-genai) | 收據照片、LINE Pay / 載具截圖 OCR 提取 |
 | **自動化排程** | APScheduler (AsyncIO) | 月初自動爬蟲、每日額度掃描警報 |
 | **匯率服務** | Open Exchange Rates API + 備援機制 | 支援 JPY, USD, EUR 等外幣即時折算台幣 |
