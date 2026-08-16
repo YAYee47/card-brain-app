@@ -9,7 +9,7 @@
 ```mermaid
 graph TD
     A["📱 iOS / Android (Expo Go / 實機 App)"] -->|HTTPS API 請求| B["☁️ Render.com (FastAPI 後端)"]
-    B -->|AsyncPG (PostgreSQL)| C[("🐘 Neon.tech (雲端 PostgreSQL 資料庫)")]
+    B -->|"AsyncPG (PostgreSQL)"| C[("🐘 Neon.tech (雲端 PostgreSQL 資料庫)")]
     B -->|Vision OCR| D["🤖 Google Gemini 2.5 Flash API"]
     B -->|即時匯率| E["💱 Exchange Rate API"]
 ```
@@ -39,12 +39,14 @@ graph TD
 - **健康檢查端點**：[`https://card-brain-app.onrender.com/api/v1/health`](https://card-brain-app.onrender.com/api/v1/health)
 
 ### 後端環境變數清單 (Render Environment Variables)
-| 變數名稱 (Key) | 說明 | 範例值 |
-|:---|:---|:---|
-| `DATABASE_URL` | Neon PostgreSQL 資料庫連線字串 | `postgresql://neondb_owner:npg_...` |
-| `GEMINI_API_KEY` | Google Gemini Vision API Key (收據 OCR) | `AQ.Ab8RN6...` |
+
+| 變數名稱 (Key)   | 說明                                    | 範例值                              |
+| :--------------- | :-------------------------------------- | :---------------------------------- |
+| `DATABASE_URL`   | Neon PostgreSQL 資料庫連線字串          | `postgresql://neondb_owner:npg_...` |
+| `GEMINI_API_KEY` | Google Gemini Vision API Key (收據 OCR) | `AQ.Ab8RN6...`                      |
 
 ### Render 建置與啟動指令
+
 - **Root Directory**: `backend`
 - **Build Command**: `pip install -r requirements.txt`
 - **Start Command**: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
@@ -56,6 +58,7 @@ graph TD
 前端已配置為直接向 Render 雲端後端發送請求，無需再設定本地 IP。
 
 ### 前端環境變數 (`mobile/.env`)
+
 ```bash
 EXPO_PUBLIC_API_URL=https://card-brain-app.onrender.com/api/v1
 ```
@@ -76,7 +79,24 @@ EXPO_PUBLIC_API_URL=https://card-brain-app.onrender.com/api/v1
    cd mobile
    npx expo start
    ```
-   *(若手機與電腦處於不同 Wi-Fi 或熱點，可使用 Tunnel 模式：`npx expo start --tunnel`)*
+   _(若手機與電腦處於不同 Wi-Fi 或熱點，可使用 Tunnel 模式：`npx expo start --tunnel`)_
 3. **手機開啟 App**：
    - 打開 iPhone 的相機，對準終端機產生的 QR Code 掃描，點擊在 Expo Go 中開啟。
    - 由於後端與資料庫皆已在雲端運作，App 啟動後即可直接讀取卡片、試算推薦與進行 AI 記帳！
+
+---
+
+## 🛡️ 6. 本地 SQLite 備份與災難復原機制 (Cold Backup & Disaster Recovery)
+
+為了確保資料 100% 安全無虞，本地電腦中保留了當初遷移前的 SQLite 原始冷備份檔案：
+
+- **備份檔案位置**：`backend/card_brain_backup.db`（約數十 KB，已被 `.gitignore` 排除，不會上傳 GitHub）
+- **包含內容**：12 張銀行卡片、91 條完整權益（含手動合併之 JCB/星展共用額度規則）、歷史記帳與月度使用量。
+- **災難復原 (Disaster Recovery)**：
+  若日後雲端 Neon 資料庫發生資料誤刪或需要重置，隨時可在本地執行以下指令，將備份檔案的所有資料**一秒無損重新灌入雲端 PostgreSQL**：
+  ```bash
+  cd backend
+  python migrate_sqlite_to_pg.py
+  ```
+
+
