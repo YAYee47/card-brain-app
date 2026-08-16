@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 // 後端 API 基礎 URL 配置
-// 優先使用環境變數設定的 URL，若無則預設指向 localhost:8000
-export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+// 優先使用環境變數設定的 URL，若無則預設指向 Render 雲端後台
+export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'https://card-brain-app.onrender.com/api/v1';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
