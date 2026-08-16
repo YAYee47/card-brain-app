@@ -8,7 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: 45000, // 給予 45 秒以容納 Render 免費版的冷啟動喚醒時間
   headers: {
     'Content-Type': 'application/json',
   },
