@@ -6,6 +6,7 @@
     "start": "expo start",
     "android": "expo run:android",
     "ios": "expo run:ios",
+    "build:ios:release": "expo run:ios --configuration Release --device",
     "web": "expo start --web",
     "switch:lan": "node scripts/switch-api-url.js lan",
     "switch:tunnel": "node scripts/switch-api-url.js tunnel"
