@@ -19,7 +19,7 @@ GEMINI_SYSTEM_PROMPT = """
 
 {
   "amount": <數字，原始幣別金額>,
-  "currency": <幣別代碼，如 TWD/USD/JPY，預設 TWD>,
+  "currency": <幣別代碼，如 TWD/JPY/KRW/CNY/USD，預設 TWD>,
   "merchant_name": <商家名稱，若無法辨識填 null>,
   "transaction_date": <交易日期 YYYY-MM-DD 格式，若無法辨識填 null>,
   "channel_name": <支付通道，如：Apple Pay/LINE Pay/信用卡/現金，若無法辨識填 null>,

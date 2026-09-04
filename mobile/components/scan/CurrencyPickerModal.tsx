@@ -8,7 +8,7 @@ interface CurrencyPickerModalProps {
   onClose: () => void;
 }
 
-const CURRENCIES = ['TWD', 'USD', 'JPY', 'EUR', 'HKD', 'SGD'];
+const CURRENCIES = ['TWD', 'JPY', 'KRW', 'CNY', 'USD'];
 
 export default function CurrencyPickerModal({ visible, selectedCurrency, onSelect, onClose }: CurrencyPickerModalProps) {
   return (
