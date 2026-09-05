@@ -15,9 +15,7 @@
         "projectId": "0875fabb-318b-4a4a-a829-fc9ab805ae50"
       }
     },
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
+    "runtimeVersion": "1.0.0",
     "updates": {
       "url": "https://u.expo.dev/0875fabb-318b-4a4a-a829-fc9ab805ae50"
     },
