@@ -99,4 +99,17 @@ EXPO_PUBLIC_API_URL=https://card-brain-app.onrender.com/api/v1
   python migrate_sqlite_to_pg.py
   ```
 
+---
 
+## 🚀 7. Expo EAS 雲端更新發布 (OTA Updates)
+
+當您修改了 React Native 的前端程式碼 (例如 `mobile/` 裡的畫面或邏輯)，您可以選擇直接將修改好的版本推送到 Expo EAS 雲端。
+一旦推送成功，未來您在手機上打開 Expo Go 時，**不需開啟電腦本地端伺服器 (npm start)**，也能直接抓取雲端上最新版的 App！
+
+- **推送更新到雲端的指令**：
+  在 `mobile` 目錄下執行以下指令：
+  ```bash
+  npx eas-cli update --branch master --message "您的更新描述，例如：修正韓元選項"
+  ```
+- **注意**：
+  `git push` 只是把程式碼文字檔備份到 GitHub。而 `eas update` 才是真正把「打包好的 App 畫面」上傳給手機的 Expo Go 讀取！如果您改了畫面想在手機上直接用，記得一定要跑 `eas update`！
