@@ -92,7 +92,7 @@ graph TD
 | **使用者選卡** | `GET` / `POST` | `/api/v1/user-cards`         | 查詢/新增使用者持有的卡片與結帳日  |
 | **推薦引擎**   | `POST`         | `/api/v1/recommend`          | 消費決策推薦最佳卡片               |
 | **AI 辨識**    | `POST`         | `/api/v1/ocr/receipt`        | 上傳收據/截圖照片由 Gemini 解析    |
-| **交易記帳**   | `POST` / `GET` | `/api/v1/transactions`       | 新增消費記帳（精算回饋）/ 查詢明細 |
+| **交易記帳**   | `POST` / `GET` | `/api/v1/transactions`       | 新增消費記帳 / 查詢明細 (支援 start_date, end_date, user_card_id 日期過濾) |
 | **交易重置**   | `DELETE`       | `/api/v1/transactions/reset` | 一鍵清空測試記帳與累計額度         |
 | **儀表板**     | `GET`          | `/api/v1/dashboard`          | 取得儀表板彙整資料 (含通道進度條)  |
 | **警報通知**   | `GET` / `POST` | `/api/v1/alerts`             | 查詢警報清單 / 標記已讀            |
@@ -102,11 +102,12 @@ graph TD
 
 ## ✅ 5. 測試驗證紀錄總結
 
-1. **後端 E2E 測試**：執行自動化測試腳本全部通過。
+1. **後端 E2E 與單元測試**：執行自動化測試腳本全部通過。
    - NT$1,500 Apple Pay 消費：精算回饋 **NT$37.5** (0.5%基礎 + 2%加碼)。
    - 5,000 JPY 消費：成功依即時匯率換算為台幣並精算回饋。
    - 韓元 (KRW) 與人民幣 (CNY) 消費：成功支援跨國幣別換算與記帳。
    - 額度臨界值測試：使用率達 80% 觸發警告，100% 觸發封頂標記。
+   - 日期範圍過濾單元測試 (`test_list_transactions.py`)：驗證時間字串解析與月份範圍篩選 100% 通過。
 2. **前端 UI 呈現**：
    - 全域粉色質感主題 (Pink Theme, `#FFF0F5`, `#DB2777`)。
    - `_layout.tsx` 加入 `maxWidth: 480` 置中響應式限制，搭配 Chrome DevTools 可完全模擬智慧型手機操作體驗。

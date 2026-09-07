@@ -113,8 +113,8 @@
 - [x] **資料庫架構大改版 (額度分離)**: 將 `MonthlyUsage` 綁定 `card_benefit_id`，徹底解決一般消費與特定加碼會互相佔用額度的 Bug。
 - [x] **修復 iOS 日曆當機**: 抽離 `DatePickerModal.tsx` 並鎖定 `themeVariant="light"`，解決 iOS 日曆閃退問題。
 - [x] **帳號資安與密碼機制**: 為非訪客帳號新增 `password_hash` 機制，採用原生 `bcrypt` 取代有衝突的 `passlib`。
-- [x] **升級 Expo SDK 57 與 Bare Workflow 修復**: 設定固定版號 `runtimeVersion: "1.0.0"`，解決 EAS Update 500 錯誤；補齊 `@expo/vector-icons` 與 `@expo/config-plugins` 依賴。
 - [x] **擴充韓元與人民幣支援**: 支援 Olive Young 韓元與淘寶記帳。
+- [x] **消費分析月份切換與精準度修復**: 修復後端 `GET /transactions` 漏接 `start_date` / `end_date` 參數導致月份未重置的重大 Bug；前端改用本地精準日曆月邊界，加入雙重保險過濾，並以 `toFixed(2)` 截斷消除圓餅圖浮點數溢出。
 
 ---
 

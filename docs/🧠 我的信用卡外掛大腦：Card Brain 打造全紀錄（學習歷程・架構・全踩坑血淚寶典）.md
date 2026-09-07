@@ -340,9 +340,22 @@ erDiagram
   1. 升級後顯式補裝：`npm install @expo/vector-icons @expo/config-plugins --legacy-peer-deps`。
   2. 發布更新時強制指定環境：`npx eas-cli update --branch master --environment production --non-interactive`。
 
+### 踩坑 10：消費分析月份切換未重置（後端漏接日期過濾參數與 JS 浮點數破版）
+
+- 狀況：在「消費分析」頁面切換不同月份時，總支出與分類消費永遠固定不變（每個月都顯示相同的 50 筆消費總和）；且圓餅圖圖例數值偶發出現 `2608.1800000000` 冗長浮點數。
+- 原因：
+  1. 後端 `GET /transactions` 端點原本僅寫了 `limit=50`，漏宣告 `start_date` 與 `end_date` 查詢參數，導致後端不管前端傳入哪個月，皆固定回傳全歷史最新的前 50 筆消費。
+  2. 前端原先使用 `.toISOString()` 產生日期邊界，在 UTC+8 台灣時區產生 8 小時偏差導致跨月邊界位移。
+  3. JavaScript 浮點數累加精度遺失（例如 `2608.1800000000003`），直接餵給 `react-native-chart-kit` 導致圖例數值破版。
+- 解法：
+  1. 後端補齊 `start_date`、`end_date`、`user_card_id` 參數與日期轉換器，在帶有日期篩選時放寬 limit 至 1000 筆。
+  2. 前端改採本地時間邊界字串 (`YYYY-MM-01 00:00:00` 至 `YYYY-MM-末日 23:59:59`)，並於客戶端加上雙重保險本地過濾。
+  3. 圓餅圖數值統一以 `Number(total.toFixed(2))` 截斷，徹底杜絕小數點溢出。
+
 ---
 
 ## 📱 六、 快速上手：使用者操作情境與指南 (User Guide)
+
 
 ```mermaid
 journey
