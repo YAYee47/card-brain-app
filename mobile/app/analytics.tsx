@@ -35,12 +35,23 @@ export default function AnalyticsScreen() {
     setLoading(true);
     try {
       const year = date.getFullYear();
-      const month = date.getMonth();
-      const startDate = new Date(year, month, 1, 0, 0, 0).toISOString();
-      const endDate = new Date(year, month + 1, 0, 23, 59, 59).toISOString();
+      const month = date.getMonth(); // 0-indexed (0 = 1月, 7 = 8月)
+      const lastDay = new Date(year, month + 1, 0).getDate();
+      const pad = (n: number) => String(n).padStart(2, '0');
+      const startDate = `${year}-${pad(month + 1)}-01 00:00:00`;
+      const endDate = `${year}-${pad(month + 1)}-${pad(lastDay)} 23:59:59`;
       
       const res = await fetchTransactions(undefined, startDate, endDate);
-      setTxns(res);
+      
+      // 雙層防禦：後端篩選後，前端再做一次本地日曆月校驗，確保跨時區或快取不跑版
+      const filtered = (res || []).filter(t => {
+        if (!t.transacted_at) return true;
+        const clean = t.transacted_at.replace("Z", "").replace("T", " ");
+        const tYear = parseInt(clean.substring(0, 4), 10);
+        const tMonth = parseInt(clean.substring(5, 7), 10) - 1;
+        return tYear === year && tMonth === month;
+      });
+      setTxns(filtered);
     } catch (error) {
       console.error('Failed to fetch analytics txns', error);
     } finally {
@@ -85,19 +96,26 @@ export default function AnalyticsScreen() {
       totalCashback += t.earned_cashback_ntd;
     });
 
+    totalSpent = Math.round(totalSpent * 100) / 100;
+    totalCashback = Math.round(totalCashback * 100) / 100;
+
     const chartData = Object.keys(grouped).map(cat => ({
       name: cat,
-      population: grouped[cat].total,
+      population: Number(grouped[cat].total.toFixed(2)),
       color: CATEGORY_COLORS[cat] || CATEGORY_COLORS['其他'],
       legendFontColor: '#4B5563',
       legendFontSize: 13,
     })).sort((a, b) => b.population - a.population);
 
-    const listData = Object.keys(grouped).map(cat => ({
-      name: cat,
-      ...grouped[cat],
-      percent: totalSpent > 0 ? (grouped[cat].total / totalSpent) * 100 : 0
-    })).sort((a, b) => b.total - a.total);
+    const listData = Object.keys(grouped).map(cat => {
+      const catTotal = Number(grouped[cat].total.toFixed(2));
+      return {
+        name: cat,
+        ...grouped[cat],
+        total: catTotal,
+        percent: totalSpent > 0 ? (catTotal / totalSpent) * 100 : 0
+      };
+    }).sort((a, b) => b.total - a.total);
 
     return { totalSpent, totalCashback, chartData, listData };
   }, [txns]);

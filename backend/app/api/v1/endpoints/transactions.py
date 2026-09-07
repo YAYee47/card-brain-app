@@ -194,21 +194,60 @@ async def create_transaction(
     )
 
 
-@router.get("/transactions", response_model=list[TransactionOut], summary="列出最近記帳紀錄")
+def _parse_filter_date(val: Optional[str]) -> Optional[datetime]:
+    if not val:
+        return None
+    try:
+        clean = val.strip().replace("Z", "").replace("T", " ")
+        if len(clean) == 10:  # YYYY-MM-DD
+            return datetime.strptime(clean, "%Y-%m-%d")
+        if "." in clean:
+            return datetime.strptime(clean[:26], "%Y-%m-%d %H:%M:%S.%f")
+        return datetime.strptime(clean[:19], "%Y-%m-%d %H:%M:%S")
+    except Exception:
+        try:
+            return datetime.fromisoformat(val)
+        except Exception:
+            return None
+
+
+@router.get("/transactions", response_model=list[TransactionOut], summary="列出記帳紀錄 (支援卡片與月份日期過濾)")
 async def list_transactions(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    limit: int = 50
+    user_card_id: Optional[int] = None,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    limit: Optional[int] = None,
 ):
     """
-    回傳當前使用者最近的消費記帳紀錄。
+    回傳當前使用者的消費記帳紀錄。支援以卡片 (user_card_id) 與日期範圍 (start_date, end_date) 進行精確過濾。
     """
-    result = await db.execute(
-        select(Transaction)
-        .where(Transaction.user_id == current_user.id)
-        .order_by(Transaction.transacted_at.desc())
-        .limit(limit)
-    )
+    query = select(Transaction).where(Transaction.user_id == current_user.id)
+
+    if user_card_id is not None:
+        query = query.where(Transaction.user_card_id == user_card_id)
+
+    start_dt = _parse_filter_date(start_date)
+    if start_dt:
+        query = query.where(Transaction.transacted_at >= start_dt)
+
+    end_dt = _parse_filter_date(end_date)
+    if end_dt:
+        if len(end_date.strip()) == 10:
+            end_dt = end_dt.replace(hour=23, minute=59, second=59)
+        query = query.where(Transaction.transacted_at <= end_dt)
+
+    query = query.order_by(Transaction.transacted_at.desc())
+
+    if limit is not None:
+        query = query.limit(limit)
+    elif not start_date and not end_date:
+        query = query.limit(50)
+    else:
+        query = query.limit(1000)
+
+    result = await db.execute(query)
     txns = result.scalars().all()
 
     out = []
@@ -228,3 +267,4 @@ async def list_transactions(
             transacted_at=t.transacted_at.isoformat(),
         ))
     return out
+
