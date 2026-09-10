@@ -56,6 +56,9 @@ graph TD
 - UI 與互動：`@expo/vector-icons` (全面使用 Ionicons，徹底淘汰會破版的文字 Emoji)、原生封裝日曆組件 `DatePickerModal.tsx`（解決 iOS 自訂樣式崩潰問題）。
 - 狀態與快取：React Hooks (`useState`, `useEffect`)、`Axios` (搭配 Request Interceptor 自動夾帶 `X-Device-UUID`)、`AsyncStorage`（離線快取支援，當 Render 雲端冷啟動或離線時展示快取資料）。
 - 幣別支援：支援台幣 (`TWD`)、日幣 (`JPY`)、韓元 (`KRW`)、人民幣 (`CNY`)、美金 (`USD`)，專門滿足出國掃貨（如韓國 Olive Young、日本實體店）與海淘（淘寶、拚多多）記帳需求。
+- iOS 實機離線運行架構 (Release vs Debug)：
+  - **Debug 模式 (連線版)**：高度依賴電腦端的 Metro Bundler 伺服器，若手機拔掉傳輸線或脫離相同 Wi-Fi 環境，會立刻紅屏報錯 `No script URL provided`。適合日常高頻率開發與測試。
+  - **Release 模式 (離線實機版)**：透過 Xcode 原生介面將編譯設定改為 Release，此舉會將前端 JS 邏輯 (JS Bundle) 直接封裝並打包進 iOS `.app` 執行檔中。灌入實體 iPhone 後，完全不需依賴電腦連線，即可隨身帶出門獨立連網記帳！
 
 #### 後端開發 (Backend)：
 
@@ -351,6 +354,21 @@ erDiagram
   1. 後端補齊 `start_date`、`end_date`、`user_card_id` 參數與日期轉換器，在帶有日期篩選時放寬 limit 至 1000 筆。
   2. 前端改採本地時間邊界字串 (`YYYY-MM-01 00:00:00` 至 `YYYY-MM-末日 23:59:59`)，並於客戶端加上雙重保險本地過濾。
   3. 圓餅圖數值統一以 `Number(total.toFixed(2))` 截斷，徹底杜絕小數點溢出。
+
+### 踩坑 11：中文路徑引發的 CocoaPods 與 Hermes 編碼崩潰 (Expo 57 升級災難)
+
+- 狀況：當 Expo SDK 升級（React Native 升級至 0.74+）後，在 Mac 執行 iOS 原生編譯 `pod install` 時，無預警引發 `Invalid hermes-engine.podspec file: incompatible character encodings: BINARY (ASCII-8BIT) and UTF-8` 崩潰。
+- 原因：因為專案放置於包含中文字元的資料夾（如 `/芝蓉work/`）中，Ruby 腳本在解析底層 Node 執行路徑時，錯誤地將中文識別為 ASCII-8BIT 編碼，與文件本身的 UTF-8 衝突而導致崩潰。
+- 解法：不向中文路徑妥協！我們展現了底層修復能力：
+  1. 深入修改 `node_modules` 內的 `hermes-engine.podspec`，對路徑變數強制加上 `.force_encoding('UTF-8')`。
+  2. 引入 `patch-package` 並加入 `"postinstall": "patch-package"` 腳本。
+  3. 確保未來專案在 Windows 或是另一台新電腦拉取 `npm install` 時，會**全自動打補丁**，徹底跨環境免疫這個深水炸彈。
+
+### 踩坑 12：`prebuild --clean` 導致 Xcode 簽名憑證遺失
+
+- 狀況：升級 Expo SDK 後重新打包實機 App 時，Xcode 突然報錯無法編譯安裝，或終端機提示未設定 Development Team。
+- 原因：跨大版本升級時為了避免殘留的 iOS 舊設定衝突，必須執行 `npx expo prebuild --clean`。但這個指令的威力在於它會把整個 `ios` 資料夾「連根拔起」重新生成。這導致原本在 Xcode 中手動勾選的「Automatically manage signing」與「Personal Team (免費開發者憑證)」直接被重置歸零。
+- 解法：建立標準化 SOP：只要執行過 `--clean` 清除快取，或是換一台新 Mac 重新 `prebuild`，打包前的第一步**永遠是打開 `CardBrain.xcworkspace` 重新綁定 Apple ID 憑證**。
 
 ---
 
