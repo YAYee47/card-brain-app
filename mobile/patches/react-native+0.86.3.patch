@@ -1,0 +1,15 @@
+diff --git a/node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec b/node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec
+index 66c399a..05ef840 100644
+--- a/node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec
++++ b/node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec
+@@ -90,8 +90,8 @@ Pod::Spec.new do |spec|
+     # In other cases, when using Hermes V1, the prebuilt versioned binaries can be used.
+     if source_type != HermesEngineSourceType::LOCAL_PREBUILT_TARBALL
+       hermes_compiler_path = File.dirname(Pod::Executable.execute_command('node', ['-p',
+-        "require.resolve(\"hermes-compiler\", {paths: [\"#{react_native_path}\"]})", __dir__]).strip
+-      )
++        "require.resolve(\"hermes-compiler\", {paths: [\"#{react_native_path.dup.force_encoding('UTF-8')}\"]})", __dir__.dup.force_encoding('UTF-8')]).force_encoding('UTF-8').strip)
++
+       hermesc_path = File.join(hermes_compiler_path, 'hermesc', 'osx-bin', 'hermesc')
+ 
+       pods_root = Pod::Config.instance.sandbox.root
