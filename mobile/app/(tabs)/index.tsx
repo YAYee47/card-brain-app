@@ -214,12 +214,12 @@ export default function DashboardScreen() {
                       if (isGuest === 'true') {
                         await apiClient.delete('/users/me');
                       }
-                      await AsyncStorage.clear();
+                      await AsyncStorage.multiRemove(['device_uuid', 'nickname', 'is_guest']);
                       router.replace('/welcome');
                     } catch (e) {
                       console.error('登出失敗:', e);
                       const AsyncStorage = require('@react-native-async-storage/async-storage').default;
-                      await AsyncStorage.clear();
+                      await AsyncStorage.multiRemove(['device_uuid', 'nickname', 'is_guest']);
                       router.replace('/welcome');
                     }
                   }

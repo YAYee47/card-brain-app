@@ -8,20 +8,26 @@ export default function WelcomeScreen() {
   const [nickname, setNickname] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [existingUsers, setExistingUsers] = useState<any[]>([]);
+  const [savedNicknames, setSavedNicknames] = useState<string[]>([]);
   const router = useRouter();
   const passwordInputRef = useRef<TextInput>(null);
+  const SAVED_NICKNAMES_KEY = 'saved_nicknames';
 
   useEffect(() => {
-    const fetchUsers = async () => {
+    const loadSavedNicknames = async () => {
       try {
-        const res = await apiClient.get('/users');
-        setExistingUsers(res.data);
+        const raw = await AsyncStorage.getItem(SAVED_NICKNAMES_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) {
+            setSavedNicknames(parsed);
+          }
+        }
       } catch (e) {
-        console.error('無法載入已儲存身分', e);
+        console.error('無法載入本機已儲存身分', e);
       }
     };
-    fetchUsers();
+    loadSavedNicknames();
   }, []);
 
   // 產生簡單的 UUID
@@ -33,10 +39,10 @@ export default function WelcomeScreen() {
     });
   };
 
-  const handleSelectExisting = (user: any) => {
-    setNickname(user.nickname);
+  const handleSelectExisting = (savedName: string) => {
+    setNickname(savedName);
     setPassword('');
-    Alert.alert('請輸入密碼', `請在下方輸入 ${user.nickname} 的密碼以登入`);
+    Alert.alert('請輸入密碼', `請在下方輸入 ${savedName} 的密碼以登入`);
     passwordInputRef.current?.focus();
   };
 
@@ -72,6 +78,12 @@ export default function WelcomeScreen() {
       await AsyncStorage.setItem('nickname', user.nickname);
       await AsyncStorage.setItem('is_guest', user.is_guest ? 'true' : 'false');
 
+      // 若為非訪客，將暱稱記錄至本機已記住清單 (不重複且保留最新)
+      if (!isGuest && user.nickname) {
+        const updated = [user.nickname, ...savedNicknames.filter(n => n !== user.nickname)].slice(0, 5);
+        await AsyncStorage.setItem(SAVED_NICKNAMES_KEY, JSON.stringify(updated));
+      }
+
       router.replace('/');
     } catch (error: any) {
       console.error(error);
@@ -91,17 +103,17 @@ export default function WelcomeScreen() {
         <Text style={styles.title}>歡迎使用 Card Brain</Text>
         <Text style={styles.subtitle}>您的智慧信用卡記帳管家</Text>
 
-        {existingUsers.length > 0 && (
+        {savedNicknames.length > 0 && (
           <View style={styles.card}>
-            <Text style={styles.label}>已存在的帳號</Text>
-            {existingUsers.map(user => (
+            <Text style={styles.label}>本機已記住的帳號</Text>
+            {savedNicknames.map(name => (
               <TouchableOpacity 
-                key={user.id}
+                key={name}
                 style={[styles.btn, styles.existingBtn]} 
-                onPress={() => handleSelectExisting(user)}
+                onPress={() => handleSelectExisting(name)}
                 disabled={loading}
               >
-                <Text style={styles.existingBtnText}>登入 {user.nickname}</Text>
+                <Text style={styles.existingBtnText}>登入 {name}</Text>
               </TouchableOpacity>
             ))}
           </View>

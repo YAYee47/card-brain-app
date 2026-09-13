@@ -84,15 +84,6 @@ async def authenticate_user(payload: UserAuthRequest, db: AsyncSession = Depends
     await db.refresh(new_user)
     return new_user
 
-@router.get("", response_model=list[UserOut], summary="取得所有非訪客使用者清單")
-async def get_all_users(db: AsyncSession = Depends(get_db)):
-    """
-    取得目前所有已建立的常規使用者（不含訪客）。
-    提供給前端顯示「已儲存身分」列表。
-    """
-    result = await db.execute(select(User).where(User.is_guest == False))
-    return result.scalars().all()
-
 @router.delete("/me", summary="刪除當前帳號 (離開訪客模式用)")
 async def delete_current_user(
     current_user: User = Depends(get_current_user),
