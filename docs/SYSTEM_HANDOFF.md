@@ -115,10 +115,16 @@
 - [x] **帳號資安與密碼機制**: 為非訪客帳號新增 `password_hash` 機制，採用原生 `bcrypt` 取代有衝突的 `passlib`。
 - [x] **擴充韓元與人民幣支援**: 支援 Olive Young 韓元與淘寶記帳。
 - [x] **消費分析月份切換與精準度修復**: 修復後端 `GET /transactions` 漏接 `start_date` / `end_date` 參數導致月份未重置的重大 Bug；前端改用本地精準日曆月邊界，加入雙重保險過濾，並以 `toFixed(2)` 截斷消除圓餅圖浮點數溢出。
+- [x] **教學頁除錯按鈕移除**: 正式版移除 `tutorial.tsx` 底部「手動觸發爬蟲與額度掃描」測試按鈕與相關說明。
+- [x] **消費分析圓餅圖圖例優化**: 移除第三方套件強制前綴數字 Bug，採用自定義圖例精確排版「類別 $金額」，並於圖表左上角新增獨立「單位：NTD」標示。
+- [x] **首頁儀表板標題清理**: 移除右上角易造成誤解的伺服器快取時間標籤，保持「各卡片加碼額度水位」排版清爽。
+- [x] **爬蟲服務 500 異常修復**: 修正 `diff_engine.py` 因 `MonthlyUsage` 依 `card_benefit_id` 拆分後使用 `scalar_one_or_none()` 引發 `MultipleResultsFound` 的嚴重報錯。
+- [x] **Render 休眠應對機制建立**: 新增 `.github/workflows/quarterly-crawl.yml` 外部定時排程，每季第一天自動呼叫後端 `/crawl` 端點，徹底擺脫 Render 免費休眠導致 APScheduler 停擺的問題。
 
 ---
 
 ## 7. Next Steps (給後續開發者的建議)
 
-- **EAS 雲端發布注意**: 每次修改完前端畫面，記得在 `mobile` 目錄執行 `npx eas-cli update --branch master --environment production --non-interactive`，手機 Expo Go 才能在不開電腦的情況下直接同步最新版。
+- **EAS 雲端發布注意**: 每次修改完前端畫面，記得在 `mobile` 目錄執行 `npx eas-cli update --branch master --message "更新說明" --environment production --non-interactive`，手機 Expo Go 才能在不開電腦的情況下直接同步最新版。單純 `git push` 不會更新手機上的 App！
 - **伺服器冷啟動應對**: Render 免費版有 45 秒休眠重啟延遲，前端已配備 45 秒 Timeout 與快取，若需常態即時反應可考慮升級為付費實例。
+- **爬蟲觸發機制**: 排程除本地與 Render APScheduler 外，主要由 GitHub Actions 外部定時觸發確保準時執行。

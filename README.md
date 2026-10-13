@@ -69,6 +69,12 @@
    - **電腦瀏覽器**：在終端機按下 `w` 鍵。
    - **雲端隨身測試 (免開電腦)**：可直接於手機 Expo Go 打開透過 `eas update` 推送的最新版本！
 
+> ⚠️ **前端畫面修改發布鐵律**：  
+> 若您在未開啟電腦本地端伺服器 (即直接透過手機 Expo Go 的 PROJECTS 打開 App)，**單純執行 `git push` 不會更新手機上的畫面**！  
+> 請務必於 `mobile/` 目錄執行 EAS OTA 更新指令：  
+> `npx eas-cli update --branch master --message "更新描述" --environment production --non-interactive`  
+> 才能將最新 JS Bundle 同步給手機端！
+
 ---
 
 ## 🧪 測試與操作指南
