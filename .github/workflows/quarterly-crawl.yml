@@ -1,0 +1,37 @@
+name: Quarterly Card Benefits Crawl
+
+on:
+  schedule:
+    # 每季 1,4,7,10 月 1 日 00:05 台北時間（UTC+8）= UTC 前一天 16:05
+    # GitHub Actions cron 用 UTC，所以是 1/1, 4/1, 7/1, 10/1 UTC 16:05
+    - cron: '5 16 1 1,4,7,10 *'
+  workflow_dispatch:  # 允許從 GitHub Actions 頁面手動觸發
+
+jobs:
+  crawl:
+    name: Trigger Benefits Crawl
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wake up Render backend (wait 60s for cold start)
+        run: |
+          echo "Waking up Render service..."
+          curl -s -o /dev/null -w "Health check HTTP: %{http_code}\n" \
+            https://card-brain-app.onrender.com/api/v1/health || true
+          sleep 60
+
+      - name: Trigger crawl endpoint
+        run: |
+          echo "Triggering crawl..."
+          RESPONSE=$(curl -s -w "\n%{http_code}" \
+            -X POST https://card-brain-app.onrender.com/api/v1/crawl \
+            -H "Content-Type: application/json" \
+            --max-time 300)
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | head -1)
+          echo "HTTP Status: $HTTP_CODE"
+          echo "Response: $BODY"
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "Crawl failed with status $HTTP_CODE"
+            exit 1
+          fi
+          echo "Crawl completed successfully!"
