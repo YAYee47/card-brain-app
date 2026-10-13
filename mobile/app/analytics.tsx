@@ -101,10 +101,9 @@ export default function AnalyticsScreen() {
 
     const chartData = Object.keys(grouped).map(cat => {
       const amt = Number(grouped[cat].total.toFixed(2));
-      // Legend 格式：「類別 $金額」（國字在前、數字在後）
-      const label = `${cat} $${amt.toLocaleString('zh-TW', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
       return {
-        name: label,
+        name: cat,
+        catName: cat,
         population: amt,
         color: CATEGORY_COLORS[cat] || CATEGORY_COLORS['其他'],
         legendFontColor: '#4B5563',
@@ -206,19 +205,32 @@ export default function AnalyticsScreen() {
               <View style={styles.chartHeader}>
                 <Text style={styles.chartUnitText}>單位：NTD</Text>
               </View>
-              <PieChart
-                data={stats.chartData}
-                width={screenWidth - 32}
-                height={220}
-                chartConfig={{
-                  color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-                }}
-                accessor={"population"}
-                backgroundColor={"transparent"}
-                paddingLeft={"15"}
-                center={[10, 0]}
-                absolute
-              />
+              <View style={styles.chartContentRow}>
+                <PieChart
+                  data={stats.chartData}
+                  width={150}
+                  height={150}
+                  chartConfig={{
+                    color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+                  }}
+                  accessor={"population"}
+                  backgroundColor={"transparent"}
+                  paddingLeft={"0"}
+                  center={[35, 0]}
+                  hasLegend={false}
+                />
+                <View style={styles.customLegendContainer}>
+                  {stats.chartData.map((item, idx) => (
+                    <View key={idx} style={styles.customLegendItem}>
+                      <View style={[styles.legendDot, { backgroundColor: item.color }]} />
+                      <Text style={styles.legendText} numberOfLines={1}>
+                        <Text style={styles.legendCatText}>{item.catName} </Text>
+                        <Text style={styles.legendAmtText}>${item.population.toLocaleString('zh-TW', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
             </View>
           ) : (
             <View style={styles.emptyState}>
@@ -314,6 +326,41 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#9CA3AF',
     fontWeight: '600',
+  },
+  chartContentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+    paddingHorizontal: 4,
+  },
+  customLegendContainer: {
+    flex: 1,
+    paddingLeft: 12,
+    justifyContent: 'center',
+    gap: 8,
+  },
+  customLegendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  legendDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    marginRight: 8,
+  },
+  legendText: {
+    fontSize: 13,
+    color: '#374151',
+  },
+  legendCatText: {
+    fontWeight: '600',
+    color: '#4B5563',
+  },
+  legendAmtText: {
+    fontWeight: '500',
+    color: '#1F2937',
   },
   emptyState: {
     backgroundColor: '#FFF', borderRadius: 16, padding: 32, marginBottom: 16,

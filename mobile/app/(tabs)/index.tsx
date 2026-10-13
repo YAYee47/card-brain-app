@@ -262,9 +262,8 @@ export default function DashboardScreen() {
         ) : (
           <>
             {/* 全域狀態區與標題 */}
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <View style={{ marginBottom: 16 }}>
               <Text style={[styles.sectionTitle, { marginBottom: 0, fontSize: 13, fontWeight: '700', color: '#BE185D' }]}>各卡片加碼額度水位</Text>
-              <Text style={{ fontSize: 10, color: '#9CA3AF' }}>資料更新時間: {cacheTime ?? '--'}</Text>
             </View>
 
             {/* 卡片列表 */}
