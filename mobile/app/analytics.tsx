@@ -101,8 +101,8 @@ export default function AnalyticsScreen() {
 
     const chartData = Object.keys(grouped).map(cat => {
       const amt = Number(grouped[cat].total.toFixed(2));
-      // Legend 格式：「類別 $金額 NTD」（國字在前、數字在後、附幣別）
-      const label = `${cat} $${amt.toLocaleString('zh-TW', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} NTD`;
+      // Legend 格式：「類別 $金額」（國字在前、數字在後）
+      const label = `${cat} $${amt.toLocaleString('zh-TW', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
       return {
         name: label,
         population: amt,
@@ -203,6 +203,9 @@ export default function AnalyticsScreen() {
           {/* Chart */}
           {stats.chartData.length > 0 ? (
             <View style={styles.chartContainer}>
+              <View style={styles.chartHeader}>
+                <Text style={styles.chartUnitText}>單位：NTD</Text>
+              </View>
               <PieChart
                 data={stats.chartData}
                 width={screenWidth - 32}
@@ -301,6 +304,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF', borderRadius: 16, padding: 16, marginBottom: 16,
     alignItems: 'center',
     shadowColor: '#FDA4AF', shadowOpacity: 0.1, shadowRadius: 8, elevation: 2,
+  },
+  chartHeader: {
+    width: '100%',
+    alignItems: 'flex-start',
+    marginBottom: 4,
+  },
+  chartUnitText: {
+    fontSize: 12,
+    color: '#9CA3AF',
+    fontWeight: '600',
   },
   emptyState: {
     backgroundColor: '#FFF', borderRadius: 16, padding: 32, marginBottom: 16,
