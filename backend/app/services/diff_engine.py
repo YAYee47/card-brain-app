@@ -128,20 +128,21 @@ async def run_crawl_and_diff(db: AsyncSession) -> dict:
 
 async def check_quota_warnings(db: AsyncSession) -> int:
     """
-    掃描所有啟用中使用者卡片的當前帳單週期額度使用量，
+    掃描所有啟用中使用者卡片的當前帳單週期額度使用量。
+    MonthlyUsage 已按 card_benefit_id 分離，每筆對應一個加碼通道。
     對 >= 80% 產生 QUOTA_WARNING 警報，對 >= 100% 產生 QUOTA_CAPPED 警報。
     避免重複：只在今日尚未產生過相同警報時才新增。
     """
     from datetime import date
-    today_str = date.today().isoformat()
 
     result = await db.execute(select(UserCard).where(UserCard.is_active == True))
     user_cards = result.scalars().all()
 
     alerts_created = 0
     for uc in user_cards:
-        cycle_start, cycle_end = get_current_billing_cycle(uc.billing_cycle_date)
+        cycle_start, _ = get_current_billing_cycle(uc.billing_cycle_date)
 
+        # 取該卡本帳單週期所有通道的使用量（每筆對應一個 card_benefit_id）
         usage_result = await db.execute(
             select(MonthlyUsage).where(
                 and_(
@@ -150,24 +151,29 @@ async def check_quota_warnings(db: AsyncSession) -> int:
                 )
             )
         )
-        usage = usage_result.scalar_one_or_none()
-        if not usage:
+        usages = usage_result.scalars().all()
+        if not usages:
             continue
 
-        used_ntd = float(usage.used_amount_ntd)
-
-        # 取此卡片所有有上限的通道
-        benefits_result = await db.execute(
-            select(CardBenefit).where(
-                and_(CardBenefit.card_id == uc.card_id, CardBenefit.monthly_cap_ntd.isnot(None))
+        for usage in usages:
+            # 取對應的 CardBenefit 上限
+            benefit_result = await db.execute(
+                select(CardBenefit).where(
+                    and_(
+                        CardBenefit.id == usage.card_benefit_id,
+                        CardBenefit.monthly_cap_ntd.isnot(None),
+                    )
+                )
             )
-        )
-        benefits = benefits_result.scalars().all()
+            b = benefit_result.scalar_one_or_none()
+            if not b:
+                continue
 
-        for b in benefits:
             cap = float(b.monthly_cap_ntd)
             if cap <= 0:
                 continue
+
+            used_ntd = float(usage.used_amount_ntd)
             pct = used_ntd / cap * 100
 
             alert_type = None
