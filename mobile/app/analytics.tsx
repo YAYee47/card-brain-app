@@ -99,13 +99,18 @@ export default function AnalyticsScreen() {
     totalSpent = Math.round(totalSpent * 100) / 100;
     totalCashback = Math.round(totalCashback * 100) / 100;
 
-    const chartData = Object.keys(grouped).map(cat => ({
-      name: cat,
-      population: Number(grouped[cat].total.toFixed(2)),
-      color: CATEGORY_COLORS[cat] || CATEGORY_COLORS['其他'],
-      legendFontColor: '#4B5563',
-      legendFontSize: 13,
-    })).sort((a, b) => b.population - a.population);
+    const chartData = Object.keys(grouped).map(cat => {
+      const amt = Number(grouped[cat].total.toFixed(2));
+      // Legend 格式：「類別 $金額 NTD」（國字在前、數字在後、附幣別）
+      const label = `${cat} $${amt.toLocaleString('zh-TW', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} NTD`;
+      return {
+        name: label,
+        population: amt,
+        color: CATEGORY_COLORS[cat] || CATEGORY_COLORS['其他'],
+        legendFontColor: '#4B5563',
+        legendFontSize: 12,
+      };
+    }).sort((a, b) => b.population - a.population);
 
     const listData = Object.keys(grouped).map(cat => {
       const catTotal = Number(grouped[cat].total.toFixed(2));

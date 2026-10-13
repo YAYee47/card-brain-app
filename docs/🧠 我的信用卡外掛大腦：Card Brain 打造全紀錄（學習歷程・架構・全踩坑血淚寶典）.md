@@ -454,3 +454,55 @@ journey
 
    ![額度進度條](https://hackmd.io/_uploads/B15CbUhuMl.png)
 
+
+---
+
+## 💥 踩坑 11：EAS Update — 改了程式碼但 Expo App 看不到更新
+
+**日期：** 2026-10-13  
+**症狀：** 修改了 	utorial.tsx 移除除錯按鈕，git push 後 Expo App 上按鈕仍然存在。  
+**根本原因：** 我用的是 **Expo Go + EAS OTA 雲端更新模式**（PROJECTS → card-brain-app），不是掃 QR Code 連本地 dev server。git push 只是備份程式碼，不等於更新 App bundle。
+
+### ✅ 正確更新流程（每次改前端都要做）
+
+`ash
+# Step 1：備份程式碼到 GitHub
+git add .
+git commit -m "Fix: 說明"
+git push origin master
+
+# Step 2：把打包好的 bundle 推給 EAS（這一步才是手機看到更新的關鍵）
+cd mobile
+npx eas-cli update --branch master --message "更新說明" --environment production --non-interactive
+`
+
+### ⚠️ 常見誤區
+| 錯誤做法 | 為何無效 |
+|----------|---------|
+| 只 git push | GitHub 只存文字程式碼，不打包 App |
+| 跑 
+px expo start --clear | 只對 QR Code 掃描模式有效，對 EAS OTA 無效 |
+| Expo Go 按 Reload | 重載上次的 EAS bundle，沒推新的就沒用 |
+
+### 打開 Expo App 後看不到更新怎麼辦？
+- PROJECTS → card-brain-app (@yayee/card-brain-app) → 重新點進去（App 啟動時會自動拉新版）
+- 如果還沒更新：把 App 完全關掉重開
+
+---
+
+## 💥 踩坑 12：APScheduler in-process 設計 + Render 免費 sleep → 爬蟲定時失效
+
+**日期：** 2026-10-13  
+**症狀：** 卡片權益「最後更新」停在 2026/8/14，10/1 的季度爬蟲沒跑。  
+**根本原因：** APScheduler 是跑在 FastAPI process 內的，Render 免費方案閒置後會 sleep，process 消滅，scheduler 也死亡。10/1 00:05 時後端不在線，爬蟲沒機會執行。  
+**免費喚醒服務**只能在有 HTTP 請求時喚醒 Render，但爬蟲是 process 內部自行觸發，沒有外部請求就不會跑。
+
+### ✅ 修復方式：GitHub Actions 外部定時 Cron
+
+新增 .github/workflows/quarterly-crawl.yml，直接定時呼叫後端 /api/v1/crawl API：
+- 每季 1/4/7/10 月 1 日 00:05 台北時間自動觸發
+- Render 後端被 HTTP request 喚醒後執行爬蟲
+- 完全不依賴後端 process 是否在線
+
+### 另外同步修復的 Bug
+diff_engine.py 的 check_quota_warnings() 在 MonthlyUsage 改成按 card_benefit_id 分離後，原本用 scalar_one_or_none() 會因為同一張卡有多筆 MonthlyUsage 而拋 MultipleResultsFound，導致 /crawl 回傳 500。已改為 scalars().all() 逐筆處理。

@@ -103,13 +103,29 @@ EXPO_PUBLIC_API_URL=https://card-brain-app.onrender.com/api/v1
 
 ## 🚀 7. Expo EAS 雲端更新發布 (OTA Updates)
 
-當您修改了 React Native 的前端程式碼 (例如 `mobile/` 裡的畫面或邏輯)，您可以選擇直接將修改好的版本推送到 Expo EAS 雲端。
-一旦推送成功，未來您在手機上打開 Expo Go 時，**不需開啟電腦本地端伺服器 (npm start)**，也能直接抓取雲端上最新版的 App！
+> ⚠️ **每次改前端都必須執行這兩步，缺一不可！**
 
-- **推送更新到雲端的指令**：
-  在 `mobile` 目錄下執行以下指令：
-  ```bash
-  npx eas-cli update --branch master --message "您的更新描述，例如：修正韓元選項"
-  ```
-- **注意**：
-  `git push` 只是把程式碼文字檔備份到 GitHub。而 `eas update` 才是真正把「打包好的 App 畫面」上傳給手機的 Expo Go 讀取！如果您改了畫面想在手機上直接用，記得一定要跑 `eas update`！
+### 完整更新流程（改一次前端畫面要跑兩個指令）
+
+```bash
+# Step 1：備份程式碼到 GitHub（必做）
+git add .
+git commit -m "Fix/Feat: 描述"
+git push origin master
+
+# Step 2：打包並推送 bundle 給 Expo App（少了這步手機看不到！）
+cd mobile
+npx eas-cli update --branch master --message "更新描述" --environment production --non-interactive
+```
+
+### 原理說明
+| 動作 | 效果 |
+|------|------|
+| `git push` | 只是備份程式碼文字到 GitHub，**不更新手機上的 App** |
+| `eas update` | 打包 JS bundle 並上傳至 Expo CDN，**手機重開 App 才會拿到新版** |
+| `npx expo start` + QR Code | 只對「掃 QR Code 連 local dev server」的模式有效，對 EAS OTA 無效 |
+
+### 手機確認更新
+1. 打開 Expo Go → PROJECTS → `card-brain-app (@yayee/card-brain-app)`
+2. App 啟動時自動拉取最新 EAS bundle
+3. 若未更新 → 把 App 完全關掉重開
